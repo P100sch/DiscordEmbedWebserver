@@ -1,0 +1,36 @@
+{{define "index" -}}
+<!doctype html>{{"" -}}
+<html lang="en">{{"" -}}
+<head>{{"" -}}
+  {{template "meta" -}}
+  <link rel="stylesheet" href="./style.css">{{"" -}}
+  <title>Discord Embed - Login</title>{{"" -}}
+</head>{{"" -}}
+<body>{{"" -}}
+  {{template "header" -}}
+  <form id="loginForm" class="center">{{"" -}}
+    <h1>Login</h1>{{"" -}}
+    <label>Username<input type="text" name="name" required></label>{{"" -}}
+    <label>Password<input type="password" name="password" required></label>{{"" -}}
+    <label><span></span><input type="submit" value="submit"></label>{{"" -}}
+    <label style="display:none;">Error<output id="error"></output></label>{{"" -}}
+  </form>{{"" -}}
+  {{template "footer" -}}
+  <div id="overlay" style="display: none">{{"" -}}
+    <div id="spinner">{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_01"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_02"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_03"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_04"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_05"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_06"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_07"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_08"></div>{{"" -}}
+    </div>{{"" -}}
+  </div>{{"" -}}
+  <script src="./auth.js" type="module"></script>{{"" -}}
+  <script src="./crypto-js.js" type="module"></script>{{"" -}}
+  <script src="./login.js" type="module"></script>{{"" -}}
+</body>{{"" -}}
+</html>
+{{- end}}

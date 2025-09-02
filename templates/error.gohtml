@@ -1,0 +1,20 @@
+{{define "error" -}}
+<!doctype html>{{"" -}}
+<html lang="en">{{"" -}}
+<head>{{"" -}}
+  {{template "meta" -}}
+  <link rel="stylesheet" href="./style.css">{{"" -}}
+  <title>Discord Embed - Error {{.StatusCode}}</title>{{"" -}}
+</head>{{"" -}}
+<body>{{"" -}}
+  {{- template "header" -}}
+  <div class="center centerAll">{{"" -}}
+    <h1>{{.StatusCode}} {{.StatusText}}</h1>{{"" -}}
+    <p>{{.Message}}</p>{{"" -}}
+    <button onclick="window.history.back()">Back</button>{{"" -}}
+  </div>{{"" -}}
+  {{- template "footer" -}}
+  <script src="./auth.js" type="module"></script>{{"" -}}
+</body>{{"" -}}
+</html>
+{{- end}}

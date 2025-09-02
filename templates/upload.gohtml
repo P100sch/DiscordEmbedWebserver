@@ -1,0 +1,36 @@
+{{define "upload" -}}
+  <!doctype html>{{"" -}}
+  <html lang="en">{{"" -}}
+  <head>{{"" -}}
+    {{template "meta" -}}
+    <link rel="stylesheet" href="./style.css">{{"" -}}
+    <title>Discord Embed - Upload</title>{{"" -}}
+  </head>{{"" -}}
+  <body>{{"" -}}
+  {{- template "header" -}}
+  <form id="uploadForm" method="POST" enctype="multipart/form-data" action="./upload" class="center">{{"" -}}
+    <h1>Upload Video</h1>{{"" -}}
+    <label>Width<input type="number" name="width" min="1" required></label>{{"" -}}
+    <label>Height<input type="number" name="height" min="1" required></label>{{"" -}}
+    <label>Video<input type="file" name="video" accept="video/mp4,video/webm,video/quicktime" required></label>{{"" -}}
+    <label>Thumbnail<input type="file" name="thumbnail" accept="image/webm,image/avif,image/gif,image/jpeg,image/png,image/svg+xml,image/apng,image/bmp,image/x-icon,image/tiff"></label>{{"" -}}
+    <label><span></span><input type="submit" value="submit"></label>{{"" -}}
+  </form>{{"" -}}
+  {{- template "footer" -}}{{"" -}}
+  <script src="./auth.js" type="module"></script>
+  <script src="./spinner.js" type="module"></script>{{"" -}}
+  <div id="overlay" style="display: none">{{"" -}}
+    <div id="spinner">{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_01"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_02"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_03"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_04"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_05"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_06"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_07"></div>{{"" -}}
+      <div class="spinnerCircle" id="spinnerCircle_08"></div>{{"" -}}
+    </div>{{"" -}}
+  </div>{{"" -}}
+  </body>{{"" -}}
+  </html>
+{{- end}}
