@@ -147,7 +147,7 @@ func parseDutration(str string) time.Duration {
 		duration = time.Hour * 24 * 365
 	case '1', '2', '3', '4', '5', '6', '7', '8', '9', '0':
 	default:
-		panic(fmt.Sprintf("Error: invalid duration: " + string([]byte{char})))
+		panic(fmt.Sprintf("Error: invalid duration: %c", char))
 	}
 	switch char {
 	case 's', 'm', 'h', 'd', 'w', 'M', 'Y':
@@ -155,7 +155,7 @@ func parseDutration(str string) time.Duration {
 	}
 	number, err := strconv.Atoi(str)
 	if err != nil {
-		panic(fmt.Sprintf("Error: could not convert logout timeout to number: " + err.Error()))
+		panic(fmt.Sprintf("Error: could not convert logout timeout to number: %s", err.Error()))
 	}
 	return duration * time.Duration(number)
 }
