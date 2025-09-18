@@ -11,14 +11,21 @@ import (
 )
 
 func main() {
-	fileNames, err := os.ReadDir("./static")
+	staticFiles, err := os.ReadDir("./static")
 	if err != nil {
 		log.Fatalln(err)
 	}
 	minifier := minify.New()
 	minifier.AddFunc("text/css", css.Minify)
 	minifier.AddFunc("application/javascript", js.Minify)
-	for _, fileName := range fileNames {
+	if _, err := os.ReadDir(filepath.Join(".", "resources", "static")); !os.IsNotExist(err) {
+		log.Fatalln(err)
+	} else if err != nil {
+		if err := os.Mkdir(filepath.Join(".", "resources", "static"), 0755); err != nil && !os.IsExist(err) {
+			log.Fatalln(err)
+		}
+	}
+	for _, fileName := range staticFiles {
 		if fileName.IsDir() {
 			continue
 		}
@@ -36,7 +43,7 @@ func main() {
 			log.Println(err)
 			continue
 		}
-		destFile, err := os.OpenFile(filepath.Join(".", "templates", fileName.Name()), os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0644)
+		destFile, err := os.OpenFile(filepath.Join(".", "resources", "static", fileName.Name()), os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0644)
 		if err != nil {
 			_ = file.Close()
 			log.Println(err)

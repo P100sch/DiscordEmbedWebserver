@@ -11,13 +11,13 @@ import (
 	"path/filepath"
 )
 
-//go:embed templates
-var embeddedTemplates embed.FS
+//go:embed resources
+var embededFiles embed.FS
 
 func initTemplates() error {
-	_, err := os.ReadDir(filepath.Join(".", "templates"))
+	_, err := os.ReadDir(filepath.Join(".", "resources", "templates"))
 	if os.IsNotExist(err) {
-		if err = initTemplateFolder(); err != nil {
+		if err = initResourceFolder(); err != nil {
 			return err
 		}
 	}
@@ -26,32 +26,32 @@ func initTemplates() error {
 	}
 
 	templates = template.New("templates")
-	if err := loadTemplate(templates, "./templates/meta.gohtml"); err != nil {
+	if err := loadTemplate(templates, "./resources/templates/meta.gohtml"); err != nil {
 		return err
 	}
-	if err := loadTemplate(templates, "./templates/header.gohtml"); err != nil {
+	if err := loadTemplate(templates, "./resources/templates/header.gohtml"); err != nil {
 		return err
 	}
-	if err := loadTemplate(templates, "./templates/footer.gohtml"); err != nil {
+	if err := loadTemplate(templates, "./resources/templates/footer.gohtml"); err != nil {
 		return err
 	}
-	if err := loadTemplate(templates, "./templates/error.gohtml"); err != nil {
+	if err := loadTemplate(templates, "./resources/templates/error.gohtml"); err != nil {
 		return err
 	}
-	if err := loadTemplate(templates, "./templates/index.gohtml"); err != nil {
+	if err := loadTemplate(templates, "./resources/templates/index.gohtml"); err != nil {
 		return err
 	}
-	if err := loadTemplate(templates, "./templates/upload.gohtml"); err != nil {
+	if err := loadTemplate(templates, "./resources/templates/upload.gohtml"); err != nil {
 		return err
 	}
-	if err := loadTemplate(templates, "./templates/embed.gohtml"); err != nil {
+	if err := loadTemplate(templates, "./resources/templates/embed.gohtml"); err != nil {
 		return err
 	}
 	return nil
 }
 
-func initTemplateFolder() error {
-	fileNames, err := embeddedTemplates.ReadDir("templates")
+func initResourceFolder() error {
+	fileNames, err := embededFiles.ReadDir("resources/templates")
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func initTemplateFolder() error {
 		return err
 	}
 	for _, filename := range fileNames {
-		embeddedFile, err := embeddedTemplates.Open(path.Join("templates", filename.Name()))
+		embeddedFile, err := embededFiles.Open(path.Join("resources/templates", filename.Name()))
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func initTemplateFolder() error {
 func loadTemplate(baseTemplate *template.Template, name string) error {
 	_, err := baseTemplate.ParseFiles(name)
 	if os.IsNotExist(err) {
-		_, err = baseTemplate.ParseFS(embeddedTemplates, name)
+		_, err = baseTemplate.ParseFS(embededFiles, name)
 		if err != nil {
 			return err
 		}
