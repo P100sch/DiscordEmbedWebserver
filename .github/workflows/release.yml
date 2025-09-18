@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup output folders
-      run: mkdir out && mkdir out/freebsd
+      run: mkdir out
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -33,13 +33,14 @@ jobs:
       run: GOOS=windows GOARCH=amd64 go build -v -ldflags="-s -w" -o ./out/DiscordEmbedServer.exe ./
     
     - name: Build FreeBSD Server
-      run: GOOS=freebsd GOARCH=amd64 go build -v -ldflags="-s -w" -o ./out/freebsd/DiscordEmbedServer ./
+      run: GOOS=freebsd GOARCH=amd64 go build -v -ldflags="-s -w" -o ./out/FreeBSDDiscordEmbedServer ./
     
     - name: Test
       run: go test -v ./...
 
     - uses: ncipollo/release-action@v1
       with:
+        name: Version ${{ github.ref_name }}
         artifactErrorsFailBuild: true
-        artifacts: './out/DiscordEmbedServer,./out/freebsd/DiscordEmbedServer,./out/DiscordEmbedServer.exe'
+        artifacts: './out/DiscordEmbedServer,./out/FreeBSDDiscordEmbedServer,./out/DiscordEmbedServer.exe'
         generateReleaseNotes: true
