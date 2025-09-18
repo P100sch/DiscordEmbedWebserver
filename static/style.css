@@ -4,6 +4,7 @@
     font-weight: 400;
     font-style: normal;
     font-variation-settings: "wdth" 100;
+    box-sizing: inherit;
 }
 
 html, body {
@@ -12,12 +13,18 @@ html, body {
     margin: 0;
 }
 
+body {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: auto 1fr auto 1fr auto;
+}
+
 nav {
+    min-width: 100%;
     display: flex;
     justify-content: space-between;
     background-color: gray;
     padding: 1rem;
-    width: calc(100% - 2rem);
     border-bottom: solid;
 }
 
@@ -39,23 +46,8 @@ nav * {
     align-self: center;
 }
 
-.top {
-    float: left;
-    width: 1px;
-    height: 50%;
-    margin-bottom: -12em;
-}
-
-.bottom {
-    float: left;
-    width: 1px;
-    height: 50%;
-    margin-top: -12em;
-}
-
 .center {
     width: fit-content;
-    clear: left;
     margin: 0 auto;
 }
 
@@ -70,7 +62,7 @@ nav * {
 }
 
 form > label {
-    width: 100%;
+    width: 21rem;
     text-align: left;
     display: flex;
     justify-content: space-between;
@@ -78,7 +70,11 @@ form > label {
 }
 
 form input {
-    max-width: 65%;
+    width: 15rem;
+}
+
+input[type="submit"] {
+    width: auto;
 }
 
 #error {
@@ -87,10 +83,13 @@ form input {
     max-width: 65%;
 }
 
+video {
+    max-width: 100%;
+    max-height: 58rem;
+}
+
 footer {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
+    min-width: 100%;
     text-align: center;
     background-color: gray;
     border-top: solid;

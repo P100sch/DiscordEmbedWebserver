@@ -18,7 +18,7 @@
   {{- template "header" -}}
   <div class="center centerAll">{{"" -}}
     <h1>{{.Title}}</h1>{{"" -}}
-    <video controls width="{{.Width}}" height="{{.Height}}" poster="../content/{{.Id}}/thumbnail">{{"" -}}
+    <video controls poster="../content/{{.Id}}/thumbnail">{{"" -}}
       <source src="../content/{{.Id}}/media" type="{{.MimeType}}">{{"" -}}
     </video>{{"" -}}
     <button onclick="navigator.clipboard.writeText(window.location)">Copy Link</button>{{"" -}}
