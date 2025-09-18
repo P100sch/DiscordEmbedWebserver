@@ -163,7 +163,7 @@ export var Auth;
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield fetch("./auth", {
                 method: "POST",
-                headers: [["Authorization", "BASIC " + atob(username + ":" + password)]]
+                headers: [["Authorization", "BASIC " + btoa(username + ":" + password)]]
             });
             if (response.redirected) {
                 window.location.assign(response.url);

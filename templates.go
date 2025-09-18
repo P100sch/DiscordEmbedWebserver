@@ -51,26 +51,41 @@ func initTemplates() error {
 }
 
 func initResourceFolder() error {
-	fileNames, err := embededFiles.ReadDir("resources/templates")
+	if err := os.Mkdir(filepath.Join(".", "resources"), 0766); err != nil {
+		return err
+	}
+	if err := copyResourceFolder("templates"); err != nil {
+		return err
+	}
+	if err := copyResourceFolder("static"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func copyResourceFolder(name string) error {
+	fileInfos, err := embededFiles.ReadDir(path.Join("resources", name))
 	if err != nil {
 		return err
 	}
-	err = os.Mkdir(filepath.Join(".", "templates"), 0766)
+	err = os.Mkdir(filepath.Join(".", "resources", name), 0766)
 	if err != nil {
 		return err
 	}
-	for _, filename := range fileNames {
-		embeddedFile, err := embededFiles.Open(path.Join("resources/templates", filename.Name()))
+	for _, fileInfo := range fileInfos {
+		embeddedFile, err := embededFiles.Open(path.Join("resources", name, fileInfo.Name()))
 		if err != nil {
 			return err
 		}
+		//goland:noinspection GoDeferInLoop
 		defer func(file fs.File) {
 			err := file.Close()
 			if err != nil {
 				log.Println("Error: closing embedded template: " + err.Error())
 			}
 		}(embeddedFile)
-		file, err := os.OpenFile(filepath.Join(".", "templates", filename.Name()), os.O_CREATE|os.O_RDWR, 0766)
+		file, err := os.OpenFile(filepath.Join(".", "resources", name, fileInfo.Name()), os.O_CREATE|os.O_RDWR, 0766)
+		//goland:noinspection GoDeferInLoop
 		defer func(file fs.File) {
 			err := file.Close()
 			if err != nil {

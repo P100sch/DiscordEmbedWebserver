@@ -5,16 +5,12 @@ export var CryptoJS;
         class WordArray {
             /**
              * Initializes a newly created word array.
-             *
              * @param {Array} words (Optional) An array of 32-bit words.
              * @param {number} sigBytes (Optional) The number of significant bytes in the words.
-             *
              * @example
-             *
              *     var wordArray = CryptoJS.lib.WordArray.create();
              *     var wordArray = CryptoJS.lib.WordArray.create([0x00010203, 0x04050607]);
-             *     var wordArray = CryptoJS.lib.WordArray.create([0x00010203, 0x04050607], 6);
-             */
+             *     var wordArray = CryptoJS.lib.WordArray.create([0x00010203, 0x04050607], 6);*/
             constructor(words = [], sigBytes = undefined) {
                 words = this.words = words;
                 if (sigBytes != undefined) {
@@ -26,29 +22,21 @@ export var CryptoJS;
             }
             /**
              * Converts this word array to a string.
-             *
+             * @param {Encoder} encoder
              * @return {string} The stringified word array.
-             *
              * @example
-             *
              *     var string = wordArray + '';
              *     var string = wordArray.toString();
-             *     var string = wordArray.toString(CryptoJS.enc.Utf8);
-             */
+             *     var string = wordArray.toString(CryptoJS.enc.Utf8);*/
             toString(encoder = Encodings.Hex) {
                 return encoder.stringify(this);
             }
             /**
              * Concatenates a word array to this word array.
-             *
              * @param {WordArray} wordArray The word array to append.
-             *
              * @return {WordArray} This word array.
-             *
              * @example
-             *
-             *     wordArray1.concat(wordArray2);
-             */
+             *     wordArray1.concat(wordArray2);*/
             concat(wordArray) {
                 // Shortcuts
                 const thisWords = this.words;
@@ -77,11 +65,8 @@ export var CryptoJS;
             }
             /**
              * Removes insignificant bits.
-             *
              * @example
-             *
-             *     wordArray.clamp();
-             */
+             *     wordArray.clamp();*/
             clamp() {
                 // Shortcuts
                 const words = this.words;
@@ -92,29 +77,20 @@ export var CryptoJS;
             }
             /**
              * Creates a copy of this word array.
-             *
              * @return {WordArray} The clone.
-             *
              * @example
-             *
-             *     var clone = wordArray.clone();
-             */
+             *     var clone = wordArray.clone();*/
             clone() {
                 return new WordArray(this.words.slice(0), this.sigBytes);
             }
+            // noinspection JSUnusedGlobalSymbols
             /**
              * Creates a word array filled with random bytes.
-             *
              * @param {number} nBytes The number of random bytes to generate.
-             *
              * @return {WordArray} The random word array.
-             *
              * @static
-             *
              * @example
-             *
-             *     var wordArray = CryptoJS.lib.WordArray.random(16);
-             */
+             *     var wordArray = CryptoJS.lib.WordArray.random(16);*/
             static random(nBytes) {
                 const words = [];
                 for (let i = 0; i < nBytes; i += 4) {
@@ -126,11 +102,8 @@ export var CryptoJS;
         Library.WordArray = WordArray;
         /**
          * Abstract buffered block algorithm template.
-         *
          * The property blockSize must be implemented in a concrete subtype.
-         *
-         * @property {number} _minBufferSize The number of blocks that should be kept unprocessed in the buffer. Default: 0
-         */
+         * @property {number} _minBufferSize The number of blocks that should be kept unprocessed in the buffer. Default: 0*/
         class BufferedBlockAlgorithm {
             constructor(data, dataBytes = 0) {
                 this._minBufferSize = 0;
@@ -139,11 +112,8 @@ export var CryptoJS;
             }
             /**
              * Resets this block algorithm's data buffer to its initial state.
-             *
              * @example
-             *
-             *     bufferedBlockAlgorithm.reset();
-             */
+             *     bufferedBlockAlgorithm.reset();*/
             reset() {
                 // Initial values
                 this._data = new WordArray();
@@ -151,14 +121,10 @@ export var CryptoJS;
             }
             /**
              * Adds new data to this block algorithm's buffer.
-             *
              * @param {WordArray|string} data The data to append. Strings are converted to a WordArray using UTF-8.
-             *
              * @example
-             *
              *     bufferedBlockAlgorithm._append('data');
-             *     bufferedBlockAlgorithm._append(wordArray);
-             */
+             *     bufferedBlockAlgorithm._append(wordArray);*/
             _append(data) {
                 // Convert string to WordArray, else assume WordArray already
                 if (typeof data == 'string') {
@@ -170,18 +136,12 @@ export var CryptoJS;
             }
             /**
              * Processes available data blocks.
-             *
              * This method invokes _doProcessBlock(offset), which must be implemented by a concrete subtype.
-             *
              * @param {boolean} doFlush Whether all blocks and partial blocks should be processed.
-             *
              * @return {WordArray} The processed data.
-             *
              * @example
-             *
              *     var processedData = bufferedBlockAlgorithm._process();
-             *     var processedData = bufferedBlockAlgorithm._process(!!'flush');
-             */
+             *     var processedData = bufferedBlockAlgorithm._process(!!'flush');*/
             _process(doFlush = false) {
                 let processedWords = [];
                 // Shortcuts
@@ -220,13 +180,9 @@ export var CryptoJS;
             }
             /**
              * Creates a copy of this object.
-             *
              * @return {Object} The clone.
-             *
              * @example
-             *
-             *     var clone = bufferedBlockAlgorithm.clone();
-             */
+             *     var clone = bufferedBlockAlgorithm.clone();*/
             clone(clone) {
                 clone._nDataBytes = this._nDataBytes;
                 clone._minBufferSize = this._minBufferSize;
@@ -238,21 +194,15 @@ export var CryptoJS;
         Library.BufferedBlockAlgorithm = BufferedBlockAlgorithm;
         /**
          * Abstract hasher template.
-         *
-         * @property {number} blockSize The number of 32-bit words this hasher operates on. Default: 16 (512 bits)
-         */
+         * @property {number} blockSize The number of 32-bit words this hasher operates on. Default: 16 (512 bits)*/
         class Hasher extends BufferedBlockAlgorithm {
             /**
              * Initializes a newly created hasher.
-             *
              * @param {WordArray} data
              * @param {number} dataBytes
              * @param {Object} cfg (Optional) The configuration options to use for this hash computation.
-             *
              * @example
-             *
-             *     var hasher = CryptoJS.algo.SHA256.create();
-             */
+             *     var hasher = CryptoJS.algo.SHA256.create();*/
             constructor(data, dataBytes, cfg) {
                 super(data, dataBytes);
                 this.blockSize = 512 / 32;
@@ -262,11 +212,8 @@ export var CryptoJS;
             }
             /**
              * Resets this hasher to its initial state.
-             *
              * @example
-             *
-             *     hasher.reset();
-             */
+             *     hasher.reset();*/
             reset() {
                 // Reset data buffer
                 super.reset();
@@ -275,16 +222,11 @@ export var CryptoJS;
             }
             /**
              * Updates this hasher with a message.
-             *
              * @param {WordArray|string} messageUpdate The message to append.
-             *
              * @return {Hasher} This hasher.
-             *
              * @example
-             *
              *     hasher.update('message');
-             *     hasher.update(wordArray);
-             */
+             *     hasher.update(wordArray);*/
             update(messageUpdate) {
                 // Append
                 this._append(messageUpdate);
@@ -296,17 +238,12 @@ export var CryptoJS;
             /**
              * Finalizes the hash computation.
              * Note that the finalize operation is effectively a destructive, read-once operation.
-             *
              * @param {WordArray|string} messageUpdate (Optional) A final message update.
-             *
              * @return {WordArray} The hash.
-             *
              * @example
-             *
              *     var hash = hasher.finalize();
              *     var hash = hasher.finalize('message');
-             *     var hash = hasher.finalize(wordArray);
-             */
+             *     var hash = hasher.finalize(wordArray);*/
             finalize(messageUpdate) {
                 // Final message update
                 if (messageUpdate) {
@@ -337,11 +274,8 @@ export var CryptoJS;
     if (typeof globalThis !== 'undefined' && globalThis.crypto) {
         crypto = globalThis.crypto;
     }
-    /*
-     * Cryptographically secure pseudorandom number generator
-     *
-     * As Math.random() is cryptographically not safe to use
-     */
+    /* Cryptographically secure pseudorandom number generator
+     * As Math.random() is cryptographically not safe to use*/
     const cryptoSecureRandomInt = function () {
         if (crypto) {
             // Use getRandomValues method (Browser)
@@ -358,23 +292,18 @@ export var CryptoJS;
     let Encodings;
     (function (Encodings) {
         var WordArray = CryptoJS.Library.WordArray;
+        // noinspection JSUnusedGlobalSymbols
         /**
-         * Hex encoding strategy.
-         */
+         * Hex encoding strategy.*/
         Encodings.Hex = {
+            // noinspection JSUnusedGlobalSymbols
             /**
              * Converts a word array to a hex string.
-             *
              * @param {WordArray} wordArray The word array.
-             *
              * @return {string} The hex string.
-             *
              * @static
-             *
              * @example
-             *
-             *     var hexString = CryptoJS.enc.Hex.stringify(wordArray);
-             */
+             *     var hexString = CryptoJS.enc.Hex.stringify(wordArray);*/
             stringify: function (wordArray) {
                 // Shortcuts
                 const words = wordArray.words;
@@ -388,47 +317,35 @@ export var CryptoJS;
                 }
                 return hexChars.join('');
             },
+            // noinspection JSUnusedGlobalSymbols
             /**
              * Converts a hex string to a word array.
-             *
              * @param {string} hexStr The hex string.
-             *
              * @return {WordArray} The word array.
-             *
              * @static
-             *
              * @example
-             *
-             *     var wordArray = CryptoJS.enc.Hex.parse(hexString);
-             */
+             *     var wordArray = CryptoJS.enc.Hex.parse(hexString);*/
             parse: function (hexStr) {
                 // Shortcut
                 const hexStrLength = hexStr.length;
                 // Convert
                 const words = [];
                 for (let i = 0; i < hexStrLength; i += 2) {
-                    words[i >>> 3] |= parseInt(hexStr.substr(i, 2), 16) << (24 - (i % 8) * 4);
+                    words[i >>> 3] |= parseInt(hexStr.substring(i, i + 2), 16) << (24 - (i % 8) * 4);
                 }
                 return new WordArray(words, hexStrLength / 2);
             },
         };
         /**
-         * Latin1 encoding strategy.
-         */
+         * Latin1 encoding strategy.*/
         Encodings.Latin1 = {
             /**
              * Converts a word array to a Latin1 string.
-             *
              * @param {WordArray} wordArray The word array.
-             *
              * @return {string} The Latin1 string.
-             *
              * @static
-             *
              * @example
-             *
-             *     var latin1String = CryptoJS.enc.Latin1.stringify(wordArray);
-             */
+             *     var latin1String = CryptoJS.enc.Latin1.stringify(wordArray);*/
             stringify: function (wordArray) {
                 // Shortcuts
                 const words = wordArray.words;
@@ -443,17 +360,11 @@ export var CryptoJS;
             },
             /**
              * Converts a Latin1 string to a word array.
-             *
              * @param {string} latin1Str The Latin1 string.
-             *
              * @return {WordArray} The word array.
-             *
              * @static
-             *
              * @example
-             *
-             *     var wordArray = CryptoJS.enc.Latin1.parse(latin1String);
-             */
+             *     var wordArray = CryptoJS.enc.Latin1.parse(latin1String);*/
             parse: function (latin1Str) {
                 // Shortcut
                 const latin1StrLength = latin1Str.length;
@@ -465,25 +376,21 @@ export var CryptoJS;
                 return new WordArray(words, latin1StrLength);
             },
         };
+        // noinspection JSUnusedGlobalSymbols
         /**
-         * UTF-8 encoding strategy.
-         */
+         * UTF-8 encoding strategy.*/
         Encodings.Utf8 = {
+            // noinspection JSUnusedGlobalSymbols
             /**
              * Converts a word array to a UTF-8 string.
-             *
              * @param {WordArray} wordArray The word array.
-             *
              * @return {string} The UTF-8 string.
-             *
              * @static
-             *
              * @example
-             *
-             *     var utf8String = CryptoJS.enc.Utf8.stringify(wordArray);
-             */
+             *     var utf8String = CryptoJS.enc.Utf8.stringify(wordArray);*/
             stringify: function (wordArray) {
                 try {
+                    // noinspection JSDeprecatedSymbols
                     return decodeURIComponent(escape(Encodings.Latin1.stringify(wordArray)));
                 }
                 catch (e) {
@@ -492,40 +399,29 @@ export var CryptoJS;
             },
             /**
              * Converts a UTF-8 string to a word array.
-             *
              * @param {string} utf8Str The UTF-8 string.
-             *
              * @return {WordArray} The word array.
-             *
              * @static
-             *
              * @example
-             *
-             *     var wordArray = CryptoJS.enc.Utf8.parse(utf8String);
-             */
+             *     var wordArray = CryptoJS.enc.Utf8.parse(utf8String);*/
             parse: function (utf8Str) {
+                // noinspection JSDeprecatedSymbols
                 return Encodings.Latin1.parse(unescape(encodeURIComponent(utf8Str)));
             },
         };
+        // noinspection JSUnusedGlobalSymbols
         /**
-         * Base64 encoding strategy.
-         */
+         * Base64 encoding strategy.*/
         Encodings.Base64 = {
             _map: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=',
             _reverseMap: undefined,
             /**
              * Converts a word array to a Base64 string.
-             *
              * @param {WordArray} wordArray The word array.
-             *
              * @return {string} The Base64 string.
-             *
              * @static
-             *
              * @example
-             *
-             *     var base64String = CryptoJS.enc.Base64.stringify(wordArray);
-             */
+             *     var base64String = CryptoJS.enc.Base64.stringify(wordArray);*/
             stringify: function (wordArray) {
                 // Shortcuts
                 const words = wordArray.words;
@@ -555,17 +451,11 @@ export var CryptoJS;
             },
             /**
              * Converts a Base64 string to a word array.
-             *
              * @param {string} base64Str The Base64 string.
-             *
              * @return {WordArray} The word array.
-             *
              * @static
-             *
              * @example
-             *
-             *     var wordArray = CryptoJS.enc.Base64.parse(base64String);
-             */
+             *     var wordArray = CryptoJS.enc.Base64.parse(base64String);*/
             parse: function (base64Str) {
                 // Shortcuts
                 let base64StrLength = base64Str.length;
@@ -609,19 +499,14 @@ export var CryptoJS;
         var Hasher = CryptoJS.Library.Hasher;
         var Utf8 = CryptoJS.Encodings.Utf8;
         /**
-         * HMAC algorithm.
-         */
+         * HMAC algorithm.*/
         class HMAC {
             /**
              * Initializes a newly created HMAC.
-             *
              * @param {Hasher} hasher The hash algorithm to use.
              * @param {WordArray|string} key The secret key.
-             *
              * @example
-             *
-             *     var hmacHasher = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, key);
-             */
+             *     var hmacHasher = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, key);*/
             constructor(hasher, key) {
                 // Init hasher
                 this._hasher = hasher;
@@ -655,11 +540,8 @@ export var CryptoJS;
             }
             /**
              * Resets this HMAC to its initial state.
-             *
              * @example
-             *
-             *     hmacHasher.reset();
-             */
+             *     hmacHasher.reset();*/
             reset() {
                 // Shortcut
                 const hasher = this._hasher;
@@ -669,16 +551,11 @@ export var CryptoJS;
             }
             /**
              * Updates this HMAC with a message.
-             *
              * @param {WordArray|string} messageUpdate The message to append.
-             *
              * @return {HMAC} This HMAC instance.
-             *
              * @example
-             *
              *     hmacHasher.update('message');
-             *     hmacHasher.update(wordArray);
-             */
+             *     hmacHasher.update(wordArray);*/
             update(messageUpdate) {
                 this._hasher.update(messageUpdate);
                 // Chainable
@@ -687,17 +564,12 @@ export var CryptoJS;
             /**
              * Finalizes the HMAC computation.
              * Note that the finalize operation is effectively a destructive, read-once operation.
-             *
              * @param {WordArray|string} messageUpdate (Optional) A final message update.
-             *
              * @return {WordArray} The HMAC.
-             *
              * @example
-             *
              *     var hmac = hmacHasher.finalize();
              *     var hmac = hmacHasher.finalize('message');
-             *     var hmac = hmacHasher.finalize(wordArray);
-             */
+             *     var hmac = hmacHasher.finalize(wordArray);*/
             finalize(messageUpdate) {
                 // Shortcut
                 const hasher = this._hasher;
@@ -741,8 +613,7 @@ export var CryptoJS;
         // Reusable object
         let W = [];
         /**
-         * SHA-256 hash algorithm.
-         */
+         * SHA-256 hash algorithm.*/
         class SHA256 extends Hasher {
             constructor() {
                 super(new WordArray(), 0, {});
@@ -829,11 +700,9 @@ export var CryptoJS;
         Algorithms.SHA256 = SHA256;
         /**
          * Configuration options.
-         *
          * @property {number} keySize The key size in words to generate. Default: 4 (128 bits)
          * @property {Hasher} hasher The hasher to use. Default: SHA256
-         * @property {number} iterations The number of iterations to perform. Default: 250000
-         */
+         * @property {number} iterations The number of iterations to perform. Default: 250000*/
         class PBKDF2Config {
             constructor() {
                 this.keySize = 128 / 32;
@@ -843,35 +712,25 @@ export var CryptoJS;
         }
         Algorithms.PBKDF2Config = PBKDF2Config;
         /**
-         * Password-Based Key Derivation Function 2 algorithm.
-         */
+         * Password-Based Key Derivation Function 2 algorithm.*/
         class PBKDF2 {
             /**
              * Initializes a newly created key derivation function.
-             *
-             * @param {Object} cfg (Optional) The configuration options to use for the derivation.
-             *
+             * @param {PBKDF2Config} cfg (Optional) The configuration options to use for the derivation.
              * @example
-             *
              *     var kdf = CryptoJS.algo.PBKDF2.create();
              *     var kdf = CryptoJS.algo.PBKDF2.create({ keySize: 8 });
-             *     var kdf = CryptoJS.algo.PBKDF2.create({ keySize: 8, iterations: 1000 });
-             */
+             *     var kdf = CryptoJS.algo.PBKDF2.create({ keySize: 8, iterations: 1000 });*/
             constructor(cfg = new PBKDF2Config()) {
                 this.cfg = cfg;
             }
             /**
              * Computes the Password-Based Key Derivation Function 2.
-             *
              * @param {WordArray|string} password The password.
              * @param {WordArray|string} salt A salt.
-             *
              * @return {WordArray} The derived key.
-             *
              * @example
-             *
-             *     var key = kdf.compute(password, salt);
-             */
+             *     var key = kdf.compute(password, salt);*/
             compute(password, salt) {
                 // Shortcut
                 const cfg = this.cfg;
@@ -915,57 +774,39 @@ export var CryptoJS;
     })(Algorithms = CryptoJS.Algorithms || (CryptoJS.Algorithms = {}));
     /**
      * Shortcut function to the hasher's object interface.
-     *
      * @param {WordArray|string} message The message to hash.
-     *
      * @return {WordArray} The hash.
-     *
      * @static
-     *
      * @example
-     *
      *     var hash = CryptoJS.SHA256('message');
-     *     var hash = CryptoJS.SHA256(wordArray);
-     */
+     *     var hash = CryptoJS.SHA256(wordArray);*/
     function SHA256(message) {
         return (new CryptoJS.Algorithms.SHA256()).finalize(message);
     }
     CryptoJS.SHA256 = SHA256;
     /**
      * Shortcut function to the HMAC's object interface.
-     *
      * @param {WordArray|string} message The message to hash.
      * @param {WordArray|string} key The secret key.
-     *
      * @return {WordArray} The HMAC.
-     *
      * @static
-     *
      * @example
-     *
-     *     var hmac = CryptoJS.HmacSHA256(message, key);
-     */
+     *     var hmac = CryptoJS.HmacSHA256(message, key);*/
     function HmacSHA256(message, key) {
         return (new Algorithms.HMAC(new Algorithms.SHA256(), key)).finalize(message);
     }
     CryptoJS.HmacSHA256 = HmacSHA256;
     /**
      * Computes the Password-Based Key Derivation Function 2.
-     *
      * @param {WordArray|string} password The password.
      * @param {WordArray|string} salt A salt.
-     * @param {Object} cfg (Optional) The configuration options to use for this computation.
-     *
+     * @param {PBKDF2Config} cfg (Optional) The configuration options to use for this computation.
      * @return {WordArray} The derived key.
-     *
      * @static
-     *
      * @example
-     *
      *     var key = CryptoJS.PBKDF2(password, salt);
      *     var key = CryptoJS.PBKDF2(password, salt, { keySize: 8 });
-     *     var key = CryptoJS.PBKDF2(password, salt, { keySize: 8, iterations: 1000 });
-     */
+     *     var key = CryptoJS.PBKDF2(password, salt, { keySize: 8, iterations: 1000 });*/
     function PBKDF2(password, salt, cfg = new Algorithms.PBKDF2Config()) {
         return (new Algorithms.PBKDF2(cfg)).compute(password, salt);
     }

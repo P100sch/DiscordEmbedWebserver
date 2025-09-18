@@ -18,12 +18,12 @@ func main() {
 	minifier := minify.New()
 	minifier.AddFunc("text/css", css.Minify)
 	minifier.AddFunc("application/javascript", js.Minify)
-	if _, err := os.ReadDir(filepath.Join(".", "resources", "static")); !os.IsNotExist(err) {
-		log.Fatalln(err)
-	} else if err != nil {
+	if _, err := os.ReadDir(filepath.Join(".", "resources", "static")); os.IsNotExist(err) {
 		if err := os.Mkdir(filepath.Join(".", "resources", "static"), 0755); err != nil && !os.IsExist(err) {
 			log.Fatalln(err)
 		}
+	} else if err != nil {
+		log.Fatalln(err)
 	}
 	for _, fileName := range staticFiles {
 		if fileName.IsDir() {

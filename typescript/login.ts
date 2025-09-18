@@ -150,7 +150,7 @@ export namespace Auth {
     async function basicAuth(username: string, password: string, logError: (msg: string) => void) {
         const response = await fetch("./auth", {
             method: "POST",
-            headers: [["Authorization", "BASIC " + atob(username + ":" + password)]]
+            headers: [["Authorization", "BASIC " + btoa(username + ":" + password)]]
         })
         if (response.redirected) {
             window.location.assign(response.url);
