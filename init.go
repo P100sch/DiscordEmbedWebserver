@@ -19,6 +19,100 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+func initialize() func() error {
+	var err error
+	var loggingClose, authClose, dataClose func() error
+	var ssl bool
+
+	log.SetOutput(os.Stderr)
+
+	initConfig()
+	loggingClose, err = configLogging()
+	if err != nil {
+		log.Println("Error: could not initialize logging: " + err.Error())
+		goto closeLogging
+	}
+	authClose, err = initAuth()
+	if err != nil {
+		log.Println("Error: could not initialize authentication: " + err.Error())
+		goto closeAuth
+	}
+	dataClose, err = initDataStore()
+	if err != nil {
+		log.Println("Error: could not initialize data store: " + err.Error())
+		goto closeAll
+	}
+
+	if strings.TrimSpace(Config.MediaPath) == "" {
+		Config.MediaPath, err = filepath.Abs("./media/")
+		if err != nil {
+			log.Println("Error: could not make media path absolute: " + err.Error())
+			goto closeAll
+		}
+		err = os.Mkdir(Config.MediaPath, 0766)
+		if err != nil && !os.IsExist(err) {
+			log.Println("Error: could not create media directory: " + err.Error())
+			goto closeAll
+		}
+	}
+	if _, err := os.ReadDir(Config.MediaPath); err != nil {
+		log.Println("Error: can not list contents of " + Config.MediaPath + " : " + err.Error())
+		goto closeAll
+	}
+	if strings.TrimSpace(Config.Port) == "" {
+		Config.Port = "80"
+	}
+	ssl = Config.SslCert != "" && Config.SslKey != ""
+	if (Config.SslCert != "" || Config.SslKey != "") && !ssl {
+		log.Println("Error: ssl cert and key must be set both")
+		goto closeAll
+	}
+	if Config.BaseUrl == "" {
+		if ssl {
+			Config.BaseUrl = "https://" + Config.Hostname
+		} else {
+			Config.BaseUrl = "http://" + Config.Hostname
+		}
+		if Config.Hostname == "" {
+			Config.BaseUrl += "localhost"
+		}
+	}
+
+	if err := initTemplates(); err != nil {
+		log.Println("Error: could not initialize templates: " + err.Error() + "\n")
+		goto closeAll
+	}
+
+	return func() error {
+		var allErrors []error
+		if err := dataClose(); err != nil {
+			allErrors = append(allErrors, WrappedError{msg: "error occurred closing data store", err: err})
+		}
+		if err := authClose(); err != nil {
+			allErrors = append(allErrors, WrappedError{msg: "error occurred closing authentication source", err: err})
+		}
+		if err := loggingClose(); err != nil {
+			allErrors = append(allErrors, WrappedError{msg: "error occurred closing config", err: err})
+		}
+		return MultipleErrors(allErrors)
+	}
+
+closeAll:
+	if err := dataClose(); err != nil {
+		log.Println("Error: closing data store: " + err.Error())
+	}
+closeAuth:
+	if err := authClose(); err != nil {
+		log.Println("Error: closing authentication source: " + err.Error())
+	}
+closeLogging:
+	if err := loggingClose(); err != nil {
+		_, _ = os.Stderr.WriteString("Error: closing config writer: " + err.Error())
+	}
+	os.Exit(1)
+	return dummyClose
+}
+
 func dummyClose() error { return nil }
 
 func getFile(path string, mode int) (*os.File, error) {
@@ -46,6 +140,33 @@ func getDB(driver, connectionString string) (*sql.Conn, func() error, error) {
 		}
 		return db.Close()
 	}, nil
+}
+
+type dbLogWriter struct {
+	conn *sql.Conn
+}
+
+func (w *dbLogWriter) Write(p []byte) (n int, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if result, err := w.conn.ExecContext(ctx, "INSERT INTO Logs(Timestamp,Message) VALUES (?,?)", time.Now(), string(p)); err != nil {
+		return 0, err
+	} else if num, err := result.RowsAffected(); err != nil {
+		return 0, err
+	} else if num != 1 {
+		return 0, errors.New("can not inserting log message")
+	}
+	return len(p), nil
+}
+
+type shellWriter string
+
+func (s *shellWriter) Write(p []byte) (n int, err error) {
+	cmd := exec.Command(string(*s), string(p))
+	if err := cmd.Run(); err != nil {
+		return 0, err
+	}
+	return len(p), nil
 }
 
 func configLogging() (func() error, error) {
@@ -96,7 +217,7 @@ func configLogging() (func() error, error) {
 				return dummyClose, err
 			}
 		}
-		writer := &dbWriter{conn}
+		writer := &dbLogWriter{conn}
 		if _, err := writer.Write([]byte(testMessage)); err != nil {
 			_ = closeFunc()
 			return dummyClose, err
@@ -117,8 +238,10 @@ func configLogging() (func() error, error) {
 
 func initAuth() (func() error, error) {
 	switch Config.Auth {
+
 	case NONE:
 		return dummyClose, nil
+
 	case SIMPLE:
 		if strings.TrimSpace(Config.AuthConfig.FilePath) == "" {
 			var err error
@@ -156,12 +279,13 @@ func initAuth() (func() error, error) {
 			}
 		}
 		return dummyClose, nil
+
 	case FILE:
 		if strings.TrimSpace(Config.AuthConfig.FilePath) == "" {
 			var err error
 			Config.AuthConfig.FilePath, err = filepath.Abs("./logins.yaml")
 			if err != nil {
-				return dummyClose, errors.New("could not make log path absolute: " + err.Error())
+				return dummyClose, errors.New("could not make auth path absolute: " + err.Error())
 			}
 		}
 		authFile, err := os.ReadFile(Config.AuthConfig.FilePath)
@@ -176,6 +300,7 @@ func initAuth() (func() error, error) {
 			authInfos[info.Username] = info
 		}
 		return dummyClose, nil
+
 	case DB:
 		var initDB = false
 		if strings.TrimSpace(Config.DataStoreConfig.DBDriver) == "" && strings.TrimSpace(Config.DataStoreConfig.ConnectionString) == "" {
@@ -203,6 +328,7 @@ func initAuth() (func() error, error) {
 		}
 		authDB = conn
 		return closeFunc, nil
+
 	case EXTERNAL:
 		cmd := exec.Command(Config.AuthConfig.ShellCommand)
 		var builder = strings.Builder{}
@@ -215,24 +341,27 @@ func initAuth() (func() error, error) {
 			return dummyClose, errors.New("invalid response from auth command: " + response)
 		}
 		return dummyClose, nil
+
 	default:
 		panic(fmt.Sprintf("Error: Invalid auth method: %s\n", Config.Auth))
-		return nil, nil
 	}
 }
 
 func initDataStore() (func() error, error) {
 	switch Config.DataStore {
+
 	case NONE:
 		return dummyClose, errors.New("data store method required")
+
 	case SIMPLE:
 		return dummyClose, nil
+
 	case FILE:
 		if strings.TrimSpace(Config.DataStoreConfig.FilePath) == "" {
 			var err error
 			Config.DataStoreConfig.FilePath, err = filepath.Abs("./data.yaml")
 			if err != nil {
-				return dummyClose, errors.New("could not make auth path absolute: " + err.Error())
+				return dummyClose, errors.New("could not make data store path absolute: " + err.Error())
 			}
 		}
 		file, err := getFile(Config.DataStoreConfig.FilePath, os.O_RDWR|os.O_APPEND)
@@ -241,6 +370,7 @@ func initDataStore() (func() error, error) {
 		}
 		dataFile = file
 		return file.Close, nil
+
 	case DB:
 		var initDB = false
 		if strings.TrimSpace(Config.DataStoreConfig.DBDriver) == "" && strings.TrimSpace(Config.DataStoreConfig.ConnectionString) == "" {
@@ -262,37 +392,11 @@ func initDataStore() (func() error, error) {
 		}
 		dataDB = conn
 		return closeFunc, nil
+
 	case EXTERNAL:
 		return dummyClose, nil
+
 	default:
 		panic(fmt.Sprintf("Error: Invalid data storage method: %s\n", Config.DataStore))
-		return nil, nil
 	}
-}
-
-type dbWriter struct {
-	conn *sql.Conn
-}
-
-func (w *dbWriter) Write(p []byte) (n int, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-	if result, err := w.conn.ExecContext(ctx, "INSERT INTO Logs(Timestamp,Message) VALUES (?,?)", time.Now(), string(p)); err != nil {
-		return 0, err
-	} else if num, err := result.RowsAffected(); err != nil {
-		return 0, err
-	} else if num != 1 {
-		return 0, errors.New("can not inserting log message")
-	}
-	return len(p), nil
-}
-
-type shellWriter string
-
-func (s *shellWriter) Write(p []byte) (n int, err error) {
-	cmd := exec.Command(fmt.Sprintf(string(*s), string(p)))
-	if err := cmd.Run(); err != nil {
-		return 0, err
-	}
-	return len(p), nil
 }

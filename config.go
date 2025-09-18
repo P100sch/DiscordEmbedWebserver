@@ -56,7 +56,7 @@ func initConfig() {
 		Config.Logging = config.Logging
 		Config.LoggingConfig = config.LoggingConfig
 		Config.MediaPath = config.MediaPath
-		Config.LogoutTimeout = parseDutration(config.LogoutTimeout)
+		Config.LogoutTimeout = parseDuration(config.LogoutTimeout)
 	} else if !os.IsNotExist(err) {
 		panic("Error: " + err.Error())
 	}
@@ -76,7 +76,7 @@ func initConfig() {
 		case strings.HasPrefix(arg, "--sslKey="):
 			Config.SslKey = strings.Trim(strings.TrimPrefix(arg, "--sslKey="), "\"")
 		case strings.HasPrefix(arg, "--timeout="):
-			Config.LogoutTimeout = parseDutration(strings.Trim(strings.TrimPrefix(arg, "--timeout="), "\""))
+			Config.LogoutTimeout = parseDuration(strings.Trim(strings.TrimPrefix(arg, "--timeout="), "\""))
 		case strings.HasPrefix(arg, "--auth="):
 			Config.Auth = DataStoreType(strings.Trim(strings.TrimPrefix(arg, "--auth="), "\""))
 		case strings.HasPrefix(arg, "--auth-file="):
@@ -125,7 +125,7 @@ func initConfig() {
 	}
 }
 
-func parseDutration(str string) time.Duration {
+func parseDuration(str string) time.Duration {
 	if str == "" {
 		return time.Hour
 	}

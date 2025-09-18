@@ -1,6 +1,11 @@
 package main
 
 import (
+	"compress/gzip"
+	"io"
+	"log"
+	"net/http"
+	"strings"
 	"time"
 )
 
@@ -83,4 +88,32 @@ func tryLockingWithTimeout(tryLock func() bool, timeout time.Duration) bool {
 		<-ticker.C
 	}
 	return false
+}
+
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (w gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+func makeGzipHandlerFunc(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			fn(w, r)
+			return
+		}
+		w.Header().Set("Content-Encoding", "gzip")
+		gz := gzip.NewWriter(w)
+		defer func(gz *gzip.Writer) {
+			err := gz.Close()
+			if err != nil {
+				log.Println("Error: closing gzip writer: " + err.Error())
+			}
+		}(gz)
+		gzr := gzipResponseWriter{Writer: gz, ResponseWriter: w}
+		fn(gzr, r)
+	}
 }
