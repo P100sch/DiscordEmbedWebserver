@@ -10,6 +10,7 @@ discordEmbedServer
 config.json
 logins.yaml
 ````
+The ``resources`` folder will be generated on first run.
 
 Remember to substitute your own email address in the footer.gohtml template.
 
